@@ -38,7 +38,8 @@
 
         </div>
     </div>
-    <script>
+<script src="/socket.io/socket.io.js"></script>
+<script>
 
 function salvarComentario(event){
 
@@ -91,6 +92,58 @@ area.innerHTML += `
 mostrarComentarios()
 
 </script>
+
+<script>
+
+const socket = io()
+
+const form = document.querySelector(".formulario")
+const nomeInput = document.getElementById("nome")
+const mensagemInput = document.getElementById("mensagem")
+const area = document.getElementById("lista-comentarios")
+
+form.addEventListener("submit", function(e){
+
+e.preventDefault()
+
+const nome = nomeInput.value
+const mensagem = mensagemInput.value
+
+const data = {
+nome: nome,
+mensagem: mensagem,
+hora: new Date().toLocaleTimeString()
+}
+
+socket.emit("sendMessage", data)
+
+adicionarMensagem(data)
+
+mensagemInput.value = ""
+
+})
+
+socket.on("receivedMessage", data => {
+adicionarMensagem(data)
+})
+
+function adicionarMensagem(data){
+
+area.innerHTML += `
+<div class="card mb-3 shadow-sm">
+<div class="card-body">
+<h5>${data.nome}</h5>
+<p>${data.mensagem}</p>
+<small>${data.hora}</small>
+</div>
+</div>
+`
+
+}
+
+</script>
+<div id="lista-comentarios" class="mt-4"></div>
 </body>
+
 
 </html>
