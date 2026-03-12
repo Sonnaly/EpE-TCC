@@ -57,3 +57,78 @@ button {
     color: #ffd1dc !important; /* Um tom de rosa claro ou a cor que preferir */
     text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
 }
+
+.field {
+    margin-bottom: 15px;
+}
+
+.field label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+/* Inputs e Textarea */
+.field input, .field textarea {
+    width: 50%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.field textarea {
+    height: 100px;
+}
+
+/* Botão roxo simples */
+.btn-success {
+    background-color: #6f42c1 !important;
+    border: none;
+    padding: 10px 20px;
+    width: 50%; /* Botão largo fica melhor no mobile */
+}
+
+
+/* Container principal já deve ter a largura que você quer */
+#form {
+    max-width: 600px; /* Ou a largura que você preferir */
+    margin: 0 auto;
+}
+
+/* O card agora segue o formulário */
+.card {
+    width: 100%; 
+    border: 1px solid #ddd !important;
+    border-left: 5px solid #6f42c1 !important;
+    position: relative; /* Necessário para o botão X */
+    margin-bottom: 15px;
+}
+
+.card-body {
+    padding: 15px !important;
+    /* Removemos o flex daqui para o texto não ficar doido */
+}
+
+.conteudo-texto {
+    display: flex;
+    flex-direction: column;
+    padding-right: 25px; /* Abre espaço para o X não encostar no texto */
+}
+
+/* Botão X - Agora usando posicionamento ABSOLUTO */
+.btn-delete {
+    position: absolute; /* Ele vai para o canto em relação ao card */
+    top: 8px;
+    right: 8px;
+    background: none;
+    border: none;
+    color: #ccc;
+    font-size: 1.4rem;
+    line-height: 1;
+    cursor: pointer;
+    z-index: 10;
+}
+
+.btn-delete:hover {
+    color: #ff4d4d;
+}

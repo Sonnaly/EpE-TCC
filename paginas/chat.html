@@ -33,116 +33,96 @@
                     <textarea name="mensagem" id="mensagem" placeholder="Mensagem*" required></textarea>
                 </div>
                 <button type="submit" class="btn btn-success" name="enviar">Enviar</button>
+                <div id="lista-comentarios" class="mt-4"></div>
             </form>
             <div id="lista-comentarios" class="mt-4"></div>
 
         </div>
     </div>
 <script src="/socket.io/socket.io.js"></script>
-<script>
-
-function salvarComentario(event){
-
-event.preventDefault()
-
-const nome = document.getElementById("nome").value
-const mensagem = document.getElementById("mensagem").value
-
-let comentarios = JSON.parse(localStorage.getItem("comentarios")) || []
-
-comentarios.push({
-nome: nome,
-mensagem: mensagem,
-data: new Date().toLocaleString()
-})
-
-localStorage.setItem("comentarios", JSON.stringify(comentarios))
-
-mostrarComentarios()
-
-document.getElementById("nome").value = ""
-document.getElementById("mensagem").value = ""
-
-}
-
-function mostrarComentarios(){
-
-let comentarios = JSON.parse(localStorage.getItem("comentarios")) || []
-
-const area = document.querySelector("#data-table tbody")
-
-area.innerHTML = ""
-
-comentarios.reverse().forEach(c => {
-
-area.innerHTML += `
-<div class="card mb-3 shadow-sm">
-<div class="card-body">
-<h5 class="card-title">${c.nome}</h5>
-<p class="card-text">${c.mensagem}</p>
-<small class="text-muted">${c.data}</small>
-</div>
-</div>
-`
-
-})
-
-}
-
-mostrarComentarios()
-
-</script>
 
 <script>
+    // Variáveis Globais
+    let socket = null;
+    const form = document.querySelector(".formulario");
+    const area = document.getElementById("lista-comentarios");
 
-const socket = io()
+    // 1. Tentar inicializar o Socket.io apenas se a biblioteca carregar
+    if (typeof io !== 'undefined') {
+        try {
+            socket = io();
+            console.log("Conectado ao servidor de tempo real.");
+            
+            socket.on("receivedMessage", data => {
+                adicionarMensagemNaTela(data);
+                salvarNoLocalStorage(data); 
+            });
+        } catch (e) {
+            console.warn("Servidor Socket.io não encontrado. Rodando em modo local.");
+        }
+    } else {
+        console.log("Modo Offline: Usando apenas LocalStorage.");
+    }
 
-const form = document.querySelector(".formulario")
-const nomeInput = document.getElementById("nome")
-const mensagemInput = document.getElementById("mensagem")
-const area = document.getElementById("lista-comentarios")
+    // 2. Carregar comentários salvos ao abrir a página
+    document.addEventListener("DOMContentLoaded", mostrarComentarios);
 
-form.addEventListener("submit", function(e){
+    form.addEventListener("submit", function(e) {
+        e.preventDefault();
 
-e.preventDefault()
+        const nome = document.getElementById("nome").value;
+        const mensagem = document.getElementById("mensagem").value;
+        const hora = new Date().toLocaleString();
 
-const nome = nomeInput.value
-const mensagem = mensagemInput.value
+        const data = { nome, mensagem, hora };
 
-const data = {
-nome: nome,
-mensagem: mensagem,
-hora: new Date().toLocaleTimeString()
+        // Salva localmente (Sempre funciona)
+        salvarNoLocalStorage(data);
+        adicionarMensagemNaTela(data);
+
+        // Envia para o servidor APENAS se o socket estiver ativo
+        if (socket && socket.connected) {
+            socket.emit("sendMessage", data);
+        }
+
+        // Limpa os campos
+        document.getElementById("mensagem").value = "";
+    });
+
+    function salvarNoLocalStorage(dado) {
+        let comentarios = JSON.parse(localStorage.getItem("comentarios")) || [];
+        // Evita duplicados simples comparando mensagem e hora
+        const jaExiste = comentarios.find(c => c.mensagem === dado.mensagem && c.hora === dado.hora);
+        if (!jaExiste) {
+            comentarios.push(dado);
+            localStorage.setItem("comentarios", JSON.stringify(comentarios));
+        }
+    }
+
+    function mostrarComentarios() {
+        let comentarios = JSON.parse(localStorage.getItem("comentarios")) || [];
+        area.innerHTML = ""; 
+        comentarios.forEach(c => adicionarMensagemNaTela(c));
+    }
+
+  function adicionarMensagemNaTela(data) {
+    const idUnico = data.id || Date.now(); 
+    const novoCard = `
+        <div class="card shadow-sm" id="card-${idUnico}">
+            <button onclick="deletarComentario(${idUnico})" class="btn-delete">&times;</button>
+            <div class="card-body">
+                <div class="conteudo-texto">
+                    <strong style="color: #6f42c1;">${data.nome}</strong>
+                    <span>${data.mensagem}</span>
+                    <small class="text-muted" style="font-size: 0.7rem;">${data.hora}</small>
+                </div>
+            </div>
+        </div>
+    `;
+    area.innerHTML += novoCard;
 }
-
-socket.emit("sendMessage", data)
-
-adicionarMensagem(data)
-
-mensagemInput.value = ""
-
-})
-
-socket.on("receivedMessage", data => {
-adicionarMensagem(data)
-})
-
-function adicionarMensagem(data){
-
-area.innerHTML += `
-<div class="card mb-3 shadow-sm">
-<div class="card-body">
-<h5>${data.nome}</h5>
-<p>${data.mensagem}</p>
-<small>${data.hora}</small>
-</div>
-</div>
-`
-
-}
-
 </script>
-<div id="lista-comentarios" class="mt-4"></div>
+
 </body>
 
 
