@@ -13,6 +13,9 @@
 * JavaScript;
 * Node.js e Scocket.io.
 
+# Visualizar a aplicação  
+https://sonnaly.github.io/TCC-ElasPorElas/
+
 # Melhorias Futuras  
 * Tornar os comentários em um chat de interação entre as usuárias;  
 * Atualizar os gráficos automaticamente através de dados governamentais;
